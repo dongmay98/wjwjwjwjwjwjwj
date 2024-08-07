@@ -7,33 +7,20 @@ function App() {
 
   useEffect(() => {
     return () => {
-      if (streamRef.current) {
-        const tracks = streamRef.current.getTracks();
-        tracks.forEach(track => track.stop());
-      }
+      stopCamera();
     };
   }, []);
 
-  const toggleCamera = async () => {
-    if (isStreamStarted) {
-      stopCamera();
-    } else {
-      startCamera();
-    }
-  };
-
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" }
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
+      const constraints = { video: true };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoRef.current.srcObject = stream;
       streamRef.current = stream;
       setIsStreamStarted(true);
     } catch (err) {
       console.error("Error accessing the camera:", err);
+      alert("Unable to access the camera. Please check your browser settings and permissions.");
     }
   };
 
@@ -41,11 +28,17 @@ function App() {
     if (streamRef.current) {
       const tracks = streamRef.current.getTracks();
       tracks.forEach(track => track.stop());
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
+      videoRef.current.srcObject = null;
       streamRef.current = null;
       setIsStreamStarted(false);
+    }
+  };
+
+  const toggleCamera = () => {
+    if (isStreamStarted) {
+      stopCamera();
+    } else {
+      startCamera();
     }
   };
 
@@ -59,7 +52,7 @@ function App() {
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center', // 변경
+    justifyContent: 'center',
     alignItems: 'center',
     padding: '20px 0',
     border: '3px solid silver',
@@ -67,13 +60,13 @@ function App() {
 
   const videoContainerStyle = {
     width: '100%',
-    height: '90%',
+    height: '100%',
     backgroundColor: 'black',
-    borderRadius: '20px',
     overflow: 'hidden',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   };
 
   const videoStyle = {
@@ -91,26 +84,25 @@ function App() {
     cursor: 'pointer',
   };
 
+  const textStyle = {
+    position: 'absolute',
+    top: '10px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    color: 'white',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
+  };
+
   return (
       <div style={containerStyle}>
         <div style={videoContainerStyle}>
-          {isStreamStarted ? (
-              <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  style={videoStyle}
-              />
-          ) : (
-              <div style={{width: '100%', height: '100%', backgroundColor: 'black'}} />
-          )}
+          <video ref={videoRef} autoPlay playsInline muted style={videoStyle} />
+          {isStreamStarted && <div style={textStyle}>전우진ㅄ</div>}
         </div>
-        <div style={{display: 'flex', alignItems: 'center', marginTop: '20px'}}>
-          <button
-              onClick={toggleCamera}
-              style={buttonStyle}
-              aria-label={isStreamStarted ? "Stop Camera" : "Start Camera"}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
+          <button onClick={toggleCamera} style={buttonStyle} />
         </div>
       </div>
   );
